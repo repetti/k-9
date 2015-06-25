@@ -14,11 +14,12 @@ import org.apache.james.mime4j.field.address.AddressBuilder;
 import android.text.TextUtils;
 import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
-import android.util.Log;
-
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Address {
+    private static final Logger log = LoggerFactory.getLogger(Address.class);
+
     private static final Pattern ATOM = Pattern.compile("^(?:[a-zA-Z0-9!#$%&'*+\\-/=?^_`{|}~]|\\s)+$");
 
     /**
@@ -145,12 +146,12 @@ public class Address {
                     Mailbox mailbox = (Mailbox)address;
                     addresses.add(new Address(mailbox.getLocalPart() + "@" + mailbox.getDomain(), mailbox.getName(), false));
                 } else {
-                    Log.e(LOG_TAG, "Unknown address type from Mime4J: "
+                    log.error("Unknown address type from Mime4J: "
                             + address.getClass().toString());
                 }
             }
         } catch (MimeException pe) {
-            Log.e(LOG_TAG, "MimeException in Address.parse()", pe);
+            log.error("MimeException in Address.parse()", pe);
             //but we do an silent failover : we just use the given string as name with empty address
             addresses.add(new Address(null, addressList, false));
         }

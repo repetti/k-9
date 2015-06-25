@@ -2,7 +2,6 @@ package com.fsck.k9.mail.store.imap;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.util.Log;
 
 import com.fsck.k9.mail.AuthType;
 import com.fsck.k9.mail.Authentication;
@@ -19,6 +18,8 @@ import com.jcraft.jzlib.JZlib;
 import com.jcraft.jzlib.ZOutputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -46,7 +47,6 @@ import javax.net.ssl.SSLException;
 
 import static com.fsck.k9.mail.ConnectionSecurity.STARTTLS_REQUIRED;
 import static com.fsck.k9.mail.K9MailLib.DEBUG_PROTOCOL_IMAP;
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 import static com.fsck.k9.mail.store.RemoteStore.SOCKET_CONNECT_TIMEOUT;
 import static com.fsck.k9.mail.store.RemoteStore.SOCKET_READ_TIMEOUT;
 import static com.fsck.k9.mail.store.imap.ImapCommands.CAPABILITY_AUTH_CRAM_MD5;
@@ -63,6 +63,8 @@ import static com.fsck.k9.mail.store.imap.ImapResponseParser.equalsIgnoreCase;
  * A cacheable class that stores the details for a single IMAP connection.
  */
 class ImapConnection {
+    private static final Logger log = LoggerFactory.getLogger(ImapConnection.class);
+
     private static final int BUFFER_SIZE = 1024;
 
     private Socket mSocket;
@@ -114,7 +116,7 @@ class ImapConnection {
             capabilities.clear();
             ImapResponse nullResponse = mParser.readResponse();
             if (K9MailLib.isDebug() && DEBUG_PROTOCOL_IMAP)
-                Log.v(LOG_TAG, getLogId() + "<<<" + nullResponse);
+                log.trace(getLogId() + "<<<" + nullResponse);
 
             List<ImapResponse> nullResponses = new LinkedList<ImapResponse>();
             nullResponses.add(nullResponse);
@@ -122,7 +124,7 @@ class ImapConnection {
 
             if (!hasCapability(CAPABILITY_CAPABILITY)) {
                 if (K9MailLib.isDebug())
-                    Log.i(LOG_TAG, "Did not get capabilities in banner, requesting CAPABILITY for " + getLogId());
+                    log.info("Did not get capabilities in banner, requesting CAPABILITY for " + getLogId());
                 List<ImapResponse> responses = receiveCapabilities(executeSimpleCommand(COMMAND_CAPABILITY));
                 if (responses.size() != 2) {
                     throw new MessagingException("Invalid CAPABILITY response received");
@@ -147,26 +149,26 @@ class ImapConnection {
             authSuccess = true;
 
             if (K9MailLib.isDebug()) {
-                Log.d(LOG_TAG, CAPABILITY_COMPRESS_DEFLATE + " = " + hasCapability(CAPABILITY_COMPRESS_DEFLATE));
+                log.debug(CAPABILITY_COMPRESS_DEFLATE + " = " + hasCapability(CAPABILITY_COMPRESS_DEFLATE));
             }
             if (hasCapability(CAPABILITY_COMPRESS_DEFLATE) && shouldEnableCompression()) {
                 enableCompression();
             }
 
             if (K9MailLib.isDebug()) {
-                Log.d(LOG_TAG, "NAMESPACE = " + hasCapability(ImapCommands.CAPABILITY_NAMESPACE)
+                log.debug("NAMESPACE = " + hasCapability(ImapCommands.CAPABILITY_NAMESPACE)
                         + ", mPathPrefix = " + mSettings.getPathPrefix());
             }
 
             if (mSettings.getPathPrefix() == null) {
                 if (hasCapability(ImapCommands.CAPABILITY_NAMESPACE)) {
                     if (K9MailLib.isDebug()) {
-                        Log.i(LOG_TAG, "pathPrefix is unset and server has NAMESPACE capability");
+                        log.info("pathPrefix is unset and server has NAMESPACE capability");
                     }
                     handleNamespace();
                 } else {
                     if (K9MailLib.isDebug()) {
-                        Log.i(LOG_TAG, "pathPrefix is unset but server does not have NAMESPACE capability");
+                        log.info("pathPrefix is unset but server does not have NAMESPACE capability");
                     }
                     mSettings.setPathPrefix("");
                 }
@@ -189,14 +191,14 @@ class ImapConnection {
             String ceMess = ce.getMessage();
             String[] tokens = ceMess.split("-");
             if (tokens.length > 1 && tokens[1] != null) {
-                Log.e(LOG_TAG, "Stripping host/port from ConnectionException for " + getLogId(), ce);
+                log.error("Stripping host/port from ConnectionException for " + getLogId(), ce);
                 throw new ConnectException(tokens[1].trim());
             } else {
                 throw ce;
             }
         } finally {
             if (!authSuccess) {
-                Log.e(LOG_TAG, "Failed to login, closing connection for " + getLogId());
+                log.error("Failed to login, closing connection for " + getLogId());
                 close();
             }
         }
@@ -230,7 +232,7 @@ class ImapConnection {
         try {
             ImapResponse response = mParser.readResponse(callback);
             if (K9MailLib.isDebug() && DEBUG_PROTOCOL_IMAP)
-                Log.v(LOG_TAG, getLogId() + "<<<" + response);
+                log.trace(getLogId() + "<<<" + response);
 
             return response;
         } catch (IOException ioe) {
@@ -246,7 +248,7 @@ class ImapConnection {
         mOut.flush();
 
         if (K9MailLib.isDebug() && DEBUG_PROTOCOL_IMAP)
-            Log.v(LOG_TAG, getLogId() + ">>> " + continuation);
+            log.trace(getLogId() + ">>> " + continuation);
 
     }
 
@@ -260,10 +262,10 @@ class ImapConnection {
 
             if (K9MailLib.isDebug() && DEBUG_PROTOCOL_IMAP) {
                 if (sensitive && !K9MailLib.isDebugSensitive()) {
-                    Log.v(LOG_TAG, getLogId() + ">>> "
+                    log.trace(getLogId() + ">>> "
                             + "[Command Hidden, Enable Sensitive Debug Logging To Show]");
                 } else {
-                    Log.v(LOG_TAG, getLogId() + ">>> " + commandToSend);
+                    log.trace(getLogId() + ">>> " + commandToSend);
                 }
             }
 
@@ -297,10 +299,10 @@ class ImapConnection {
             commandToLog = "*sensitive*";
         }
         //if (K9MailLib.isDebug())
-        //    Log.v(LOG_TAG, "Sending IMAP command " + commandToLog + " on connection " + getLogId());
+        //    log.trace("Sending IMAP command " + commandToLog + " on connection " + getLogId());
         String tag = sendCommand(command, sensitive);
         //if (K9MailLib.isDebug())
-        //    Log.v(LOG_TAG, "Sent IMAP command " + commandToLog + " with tag " + tag + " for " + getLogId());
+        //    log.trace("Sent IMAP command " + commandToLog + " with tag " + tag + " for " + getLogId());
         return mParser.readStatusResponse(tag, commandToLog, getLogId(), untaggedHandler);
     }
 
@@ -374,7 +376,7 @@ class ImapConnection {
                     throw new MessagingException(
                             "Command continuation aborted: " + response);
                 } else {
-                    Log.w(LOG_TAG, "After sending tag " + tag
+                    log.warn("After sending tag " + tag
                             + ", got tag response from previous command "
                             + response + " for " + getLogId());
                 }
@@ -392,7 +394,7 @@ class ImapConnection {
 
     protected boolean isIdleCapable() {
         if (K9MailLib.isDebug())
-            Log.v(LOG_TAG, "Connection " + getLogId() + " has " + capabilities.size() + " capabilities");
+            log.trace("Connection " + getLogId() + " has " + capabilities.size() + " capabilities");
 
         return capabilities.contains(ImapCommands.CAPABILITY_IDLE);
     }
@@ -426,12 +428,12 @@ class ImapConnection {
                     mSettings.setPathDelimiter(response.getString(2));
                     mSettings.setCombinedPrefix(null);
                     if (K9MailLib.isDebug()) {
-                        Log.d(LOG_TAG, "Got path delimiter '" + mSettings.getPathDelimiter() + "' for " + getLogId());
+                        log.debug("Got path delimiter '" + mSettings.getPathDelimiter() + "' for " + getLogId());
                     }
                 }
             }
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Unable to get path delimiter using LIST", e);
+            log.error("Unable to get path delimiter using LIST", e);
         }
     }
 
@@ -440,24 +442,24 @@ class ImapConnection {
         for (ImapResponse response : responses) {
             if (equalsIgnoreCase(response.get(0), ImapCommands.COMMAND_NAMESPACE)) {
                 if (K9MailLib.isDebug()) {
-                    Log.d(LOG_TAG, "Got NAMESPACE response " + response + " on " + getLogId());
+                    log.debug("Got NAMESPACE response " + response + " on " + getLogId());
                 }
 
                 Object personalNamespaces = response.get(1);
                 if (personalNamespaces instanceof ImapList) {
                     if (K9MailLib.isDebug())
-                        Log.d(LOG_TAG, "Got personal namespaces: " + personalNamespaces);
+                        log.debug("Got personal namespaces: " + personalNamespaces);
                     ImapList bracketed = (ImapList)personalNamespaces;
                     Object firstNamespace = bracketed.get(0);
                     if (firstNamespace != null && firstNamespace instanceof ImapList) {
                         if (K9MailLib.isDebug())
-                            Log.d(LOG_TAG, "Got first personal namespaces: " + firstNamespace);
+                            log.debug("Got first personal namespaces: " + firstNamespace);
                         bracketed = (ImapList)firstNamespace;
                         mSettings.setPathPrefix(bracketed.getString(0));
                         mSettings.setPathDelimiter(bracketed.getString(1));
                         mSettings.setCombinedPrefix(null);
                         if (K9MailLib.isDebug())
-                            Log.d(LOG_TAG, "Got path '" + mSettings.getPathPrefix() + "' and separator '" + mSettings.getPathDelimiter() + "'");
+                            log.debug("Got path '" + mSettings.getPathPrefix() + "' and separator '" + mSettings.getPathDelimiter() + "'");
                     }
                 }
             }
@@ -470,13 +472,13 @@ class ImapConnection {
         if (netInfo != null) {
             int type = netInfo.getType();
             if (K9MailLib.isDebug()) {
-                Log.d(LOG_TAG, "On network type " + type);
+                log.debug("On network type " + type);
             }
             useCompression = mSettings.useCompression(
                     NetworkType.fromConnectivityManagerType(type));
         }
         if (K9MailLib.isDebug()) {
-            Log.d(LOG_TAG, "useCompression " + useCompression);
+            log.debug("useCompression " + useCompression);
         }
         return useCompression;
     }
@@ -491,10 +493,10 @@ class ImapConnection {
             mOut = new BufferedOutputStream(zOutputStream, BUFFER_SIZE);
             zOutputStream.setFlushMode(JZlib.Z_PARTIAL_FLUSH);
             if (K9MailLib.isDebug()) {
-                Log.i(LOG_TAG, "Compression enabled for " + getLogId());
+                log.info("Compression enabled for " + getLogId());
             }
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Unable to negotiate compression", e);
+            log.error("Unable to negotiate compression", e);
         }
     }
 
@@ -545,7 +547,7 @@ class ImapConnection {
         mOut = new BufferedOutputStream(mSocket.getOutputStream(), BUFFER_SIZE);
         // Per RFC 2595 (3.1):  Once TLS has been started, reissue CAPABILITY command
         if (K9MailLib.isDebug()) {
-            Log.i(LOG_TAG, "Updating capabilities after STARTTLS for " + getLogId());
+            log.info("Updating capabilities after STARTTLS for " + getLogId());
         }
         capabilities.clear();
         List<ImapResponse> responses = receiveCapabilities(executeSimpleCommand(COMMAND_CAPABILITY));
@@ -561,7 +563,7 @@ class ImapConnection {
         for (InetAddress address : InetAddress.getAllByName(settings.getHost())) {
             try {
                 if (K9MailLib.isDebug() && DEBUG_PROTOCOL_IMAP) {
-                    Log.d(LOG_TAG, "Connecting to " + settings.getHost() + " as " + address);
+                    log.debug("Connecting to " + settings.getHost() + " as " + address);
                 }
 
                 SocketAddress socketAddress = new InetSocketAddress(address, settings.getPort());
@@ -579,7 +581,7 @@ class ImapConnection {
                 // Successfully connected to the server; don't try any other addresses
                 return socket;
             } catch (IOException e) {
-                Log.w(LOG_TAG, "could not connect to "+address, e);
+                log.warn("could not connect to "+address, e);
                 connectException = e;
             }
         }
@@ -590,12 +592,12 @@ class ImapConnection {
         try {
             Security.setProperty("networkaddress.cache.ttl", "0");
         } catch (Exception e) {
-            Log.w(LOG_TAG, "Could not set DNS ttl to 0 for " + getLogId(), e);
+            log.warn("Could not set DNS ttl to 0 for " + getLogId(), e);
         }
         try {
             Security.setProperty("networkaddress.cache.negative.ttl", "0");
         } catch (Exception e) {
-            Log.w(LOG_TAG, "Could not set DNS negative ttl to 0 for " + getLogId(), e);
+            log.warn("Could not set DNS negative ttl to 0 for " + getLogId(), e);
         }
     }
 
@@ -609,7 +611,7 @@ class ImapConnection {
             automatic capabilities.
         */
         if (K9MailLib.isDebug()) {
-            Log.d(LOG_TAG, "Saving " + receivedCapabilities + " capabilities for " + getLogId());
+            log.debug("Saving " + receivedCapabilities + " capabilities for " + getLogId());
         }
         capabilities.addAll(receivedCapabilities);
         return responses;

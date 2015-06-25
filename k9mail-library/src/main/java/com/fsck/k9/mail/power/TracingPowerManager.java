@@ -9,12 +9,14 @@ import com.fsck.k9.mail.K9MailLib;
 import android.content.Context;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.util.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 
 
 public class TracingPowerManager {
+    private static final Logger log = LoggerFactory.getLogger(TracingPowerManager.class);
+        
     private final static boolean TRACE = false;
     public static AtomicInteger wakeLockId = new AtomicInteger(0);
     PowerManager pm = null;
@@ -25,7 +27,7 @@ public class TracingPowerManager {
         Context appContext = context.getApplicationContext();
         if (tracingPowerManager == null) {
             if (K9MailLib.isDebug()) {
-                Log.v(LOG_TAG, "Creating TracingPowerManager");
+                log.trace("Creating TracingPowerManager");
             }
             tracingPowerManager = new TracingPowerManager(appContext);
         }
@@ -55,7 +57,7 @@ public class TracingPowerManager {
             wakeLock = pm.newWakeLock(flags, tag);
             id = wakeLockId.getAndIncrement();
             if (K9MailLib.isDebug()) {
-                Log.v(LOG_TAG, "TracingWakeLock for tag " + tag + " / id " + id + ": Create");
+                log.trace("TracingWakeLock for tag " + tag + " / id " + id + ": Create");
             }
         }
         public void acquire(long timeout) {
@@ -63,7 +65,7 @@ public class TracingPowerManager {
                 wakeLock.acquire(timeout);
             }
             if (K9MailLib.isDebug()) {
-                Log.v(LOG_TAG, "TracingWakeLock for tag " + tag + " / id " + id + " for " + timeout + " ms: acquired");
+                log.trace("TracingWakeLock for tag " + tag + " / id " + id + " for " + timeout + " ms: acquired");
             }
             raiseNotification();
             if (startTime == null) {
@@ -77,7 +79,7 @@ public class TracingPowerManager {
             }
             raiseNotification();
             if (K9MailLib.isDebug()) {
-                Log.w(LOG_TAG, "TracingWakeLock for tag " + tag + " / id " + id + ": acquired with no timeout.  K-9 Mail should not do this");
+                log.warn("TracingWakeLock for tag " + tag + " / id " + id + ": acquired with no timeout.  K-9 Mail should not do this");
             }
             if (startTime == null) {
                 startTime = System.currentTimeMillis();
@@ -93,11 +95,11 @@ public class TracingPowerManager {
             if (startTime != null) {
                 Long endTime = System.currentTimeMillis();
                 if (K9MailLib.isDebug()) {
-                    Log.v(LOG_TAG, "TracingWakeLock for tag " + tag + " / id " + id + ": releasing after " + (endTime - startTime) + " ms, timeout = " + timeout + " ms");
+                    log.trace("TracingWakeLock for tag " + tag + " / id " + id + ": releasing after " + (endTime - startTime) + " ms, timeout = " + timeout + " ms");
                 }
             } else {
                 if (K9MailLib.isDebug()) {
-                    Log.v(LOG_TAG, "TracingWakeLock for tag " + tag + " / id " + id + ", timeout = " + timeout + " ms: releasing");
+                    log.trace("TracingWakeLock for tag " + tag + " / id " + id + ", timeout = " + timeout + " ms: releasing");
                 }
             }
             cancelNotification();
@@ -127,11 +129,11 @@ public class TracingPowerManager {
                         public void run() {
                             if (startTime != null) {
                                 Long endTime = System.currentTimeMillis();
-                                Log.i(LOG_TAG, "TracingWakeLock for tag " + tag + " / id " + id + ": has been active for "
+                                log.info("TracingWakeLock for tag " + tag + " / id " + id + ": has been active for "
                                       + (endTime - startTime) + " ms, timeout = " + timeout + " ms");
 
                             } else {
-                                Log.i(LOG_TAG, "TracingWakeLock for tag " + tag + " / id " + id + ": still active, timeout = " + timeout + " ms");
+                                log.info("TracingWakeLock for tag " + tag + " / id " + id + ": still active, timeout = " + timeout + " ms");
                             }
                         }
 

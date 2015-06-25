@@ -1,12 +1,14 @@
 package com.fsck.k9.mail.store.imap;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.fsck.k9.mail.K9MailLib;
 import com.fsck.k9.mail.MessagingException;
 import com.fsck.k9.mail.filter.FixedLengthInputStream;
 import com.fsck.k9.mail.filter.PeekableInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -16,10 +18,11 @@ import java.util.Locale;
 import java.util.Set;
 
 import static com.fsck.k9.mail.K9MailLib.DEBUG_PROTOCOL_IMAP;
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 import static com.fsck.k9.mail.store.imap.ImapCommands.CAPABILITY_CAPABILITY;
 
 class ImapResponseParser {
+    private static final Logger log = LoggerFactory.getLogger(ImapResponseParser.class);
+
     private PeekableInputStream mIn;
     private ImapResponse mResponse;
     private Exception mException;
@@ -72,11 +75,11 @@ class ImapResponseParser {
         do {
             response = readResponse();
             if (K9MailLib.isDebug() && DEBUG_PROTOCOL_IMAP) {
-                Log.v(LOG_TAG, logId + "<<<" + response);
+                log.trace(logId + "<<<" + response);
             }
 
             if (response.getTag() != null && !response.getTag().equalsIgnoreCase(tag)) {
-                Log.w(LOG_TAG, "After sending tag " + tag + ", got tag response from previous command " + response + " for " + logId);
+                log.warn("After sending tag " + tag + ", got tag response from previous command " + response + " for " + logId);
 
                 Iterator<ImapResponse> iter = responses.iterator();
 

@@ -1,7 +1,9 @@
-apply plugin: 'com.android.library'
-apply from: '../gradle/plugins/checkstyle-android.gradle'
-apply from: '../gradle/plugins/findbugs-android.gradle'
-apply plugin: 'jacoco'
+//apply plugin: 'com.android.library'
+//apply from: '../gradle/plugins/checkstyle-android.gradle'
+//apply from: '../gradle/plugins/findbugs-android.gradle'
+//apply plugin: 'jacoco'
+
+apply plugin: 'java'
 
 repositories {
     jcenter()
@@ -14,8 +16,11 @@ dependencies {
     compile 'com.jcraft:jzlib:1.0.7'
     compile 'com.beetstra.jutf7:jutf7:1.0.0'
 
-    androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
-    androidTestCompile 'com.madgag.spongycastle:pg:1.51.0.0'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.+'
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.0.+'
+
+//    androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
+//    androidTestCompile 'com.madgag.spongycastle:pg:1.51.0.0'
 
     testCompile('org.robolectric:robolectric:3.0-rc3') {
         exclude group: 'org.hamcrest', module: 'hamcrest-core'
@@ -26,40 +31,40 @@ dependencies {
     }
 }
 
-android {
-    compileSdkVersion 21
-    buildToolsVersion '21.1.2'
-
-    defaultConfig {
-        minSdkVersion 15
-        targetSdkVersion 21
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        debug {
-            testCoverageEnabled rootProject.testCoverage
-        }
-    }
-
-    lintOptions {
-        abortOnError true
-        warningsAsErrors true
-        lintConfig file("$rootProject.projectDir/config/lint/lint.xml")
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_6
-        targetCompatibility JavaVersion.VERSION_1_6
-    }
-
-    packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/NOTICE.txt'
-        exclude 'LICENSE.txt'
-    }
-}
+//android {
+//    compileSdkVersion 21
+//    buildToolsVersion '21.1.2'
+//
+//    defaultConfig {
+//        minSdkVersion 15
+//        targetSdkVersion 21
+//
+//        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+//    }
+//
+//    buildTypes {
+//        debug {
+//            testCoverageEnabled rootProject.testCoverage
+//        }
+//    }
+//
+//    lintOptions {
+//        abortOnError true
+//        warningsAsErrors true
+//        lintConfig file("$rootProject.projectDir/config/lint/lint.xml")
+//    }
+//
+//    compileOptions {
+//        sourceCompatibility JavaVersion.VERSION_1_6
+//        targetCompatibility JavaVersion.VERSION_1_6
+//    }
+//
+//    packagingOptions {
+//        exclude 'META-INF/DEPENDENCIES'
+//        exclude 'META-INF/LICENSE'
+//        exclude 'META-INF/LICENSE.txt'
+//        exclude 'META-INF/NOTICE'
+//        exclude 'META-INF/NOTICE.txt'
+//        exclude 'LICENSE.txt'
+//    }
+//}

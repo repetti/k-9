@@ -7,14 +7,15 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.Set;
 
-import android.util.Log;
-
 import com.fsck.k9.mail.filter.CountingOutputStream;
 import com.fsck.k9.mail.filter.EOLConvertingOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 
 public abstract class Message implements Part, CompositeBody {
+
+    private static final Logger log = LoggerFactory.getLogger(Message.class);
 
     public enum RecipientType {
         TO, CC, BCC,
@@ -204,9 +205,10 @@ public abstract class Message implements Part, CompositeBody {
             eolOut.flush();
             return out.getCount();
         } catch (IOException e) {
-            Log.e(LOG_TAG, "Failed to calculate a message size", e);
+
+            log.error("Failed to calculate a message size", e);
         } catch (MessagingException e) {
-            Log.e(LOG_TAG, "Failed to calculate a message size", e);
+            log.error("Failed to calculate a message size", e);
         }
         return 0;
     }

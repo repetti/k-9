@@ -11,22 +11,25 @@ import java.util.List;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.fsck.k9.mail.MessagingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 
 
 /**
  * Filter and reorder list of cipher suites and TLS versions.
  */
 public class DefaultTrustedSocketFactory implements TrustedSocketFactory {
+    private static final Logger log = LoggerFactory.getLogger(DefaultTrustedSocketFactory.class);
+
     protected static final String[] ENABLED_CIPHERS;
     protected static final String[] ENABLED_PROTOCOLS;
 
@@ -102,7 +105,7 @@ public class DefaultTrustedSocketFactory implements TrustedSocketFactory {
              */
             supportedProtocols = sock.getSupportedProtocols();
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Error getting information about available SSL/TLS ciphers and " +
+            log.error("Error getting information about available SSL/TLS ciphers and " +
                     "protocols", e);
         }
 

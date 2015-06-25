@@ -1,8 +1,6 @@
 
 package com.fsck.k9.mail.ssl;
 
-import android.util.Log;
-
 import com.fsck.k9.mail.CertificateChainException;
 
 import javax.net.ssl.SSLException;
@@ -10,6 +8,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.conn.ssl.StrictHostnameVerifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class TrustManagerFactory {
-    private static final String LOG_TAG = "TrustManagerFactory";
+    private static final Logger log = LoggerFactory.getLogger(TrustManagerFactory.class);
 
     private static X509TrustManager defaultTrustManager;
 
@@ -108,9 +108,9 @@ public final class TrustManagerFactory {
                 }
             }
         } catch (NoSuchAlgorithmException e) {
-            Log.e(LOG_TAG, "Unable to get X509 Trust Manager ", e);
+            log.error("Unable to get X509 Trust Manager ", e);
         } catch (KeyStoreException e) {
-            Log.e(LOG_TAG, "Key Store exception while initializing TrustManagerFactory ", e);
+            log.error("Key Store exception while initializing TrustManagerFactory ", e);
         }
     }
 

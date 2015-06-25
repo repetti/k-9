@@ -12,12 +12,13 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import android.util.Log;
-
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 
 public class LocalKeyStore {
+    private static final Logger log = LoggerFactory.getLogger(LocalKeyStore.class);
+
     private static final int KEY_STORE_FILE_VERSION = 1;
 
     private static String sKeyStoreLocation;
@@ -50,7 +51,7 @@ public class LocalKeyStore {
              * error, presuming setKeyStoreFile(File) is called next with a
              * non-null File.
              */
-            Log.w(LOG_TAG, "Local key store has not been initialized");
+            log.warn("Local key store has not been initialized");
         }
     }
 
@@ -92,7 +93,7 @@ public class LocalKeyStore {
             mKeyStore = store;
             mKeyStoreFile = file;
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Failed to initialize local key store", e);
+            log.error("Failed to initialize local key store", e);
             // Use of the local key store is effectively disabled.
             mKeyStore = null;
             mKeyStoreFile = null;
@@ -169,7 +170,7 @@ public class LocalKeyStore {
         } catch (KeyStoreException e) {
             // Ignore: most likely there was no cert. found
         } catch (CertificateException e) {
-            Log.e(LOG_TAG, "Error updating the local key store file", e);
+            log.error("Error updating the local key store file", e);
         }
     }
 

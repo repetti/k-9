@@ -1,8 +1,6 @@
 
 package com.fsck.k9.mail.transport;
 
-import android.util.Log;
-
 import com.fsck.k9.mail.*;
 import com.fsck.k9.mail.Message.RecipientType;
 import com.fsck.k9.mail.filter.Base64;
@@ -14,6 +12,8 @@ import com.fsck.k9.mail.internet.CharsetSupport;
 import com.fsck.k9.mail.CertificateValidationException;
 import com.fsck.k9.mail.ssl.TrustedSocketFactory;
 import com.fsck.k9.mail.store.StoreConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
 
@@ -26,10 +26,11 @@ import java.security.GeneralSecurityException;
 import java.util.*;
 
 import static com.fsck.k9.mail.K9MailLib.DEBUG_PROTOCOL_SMTP;
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 import static com.fsck.k9.mail.CertificateValidationException.Reason.MissingCapability;
 
 public class SmtpTransport extends Transport {
+    private static final Logger log = LoggerFactory.getLogger(SmtpTransport.class);
+
     private TrustedSocketFactory mTrustedSocketFactory;
 
     /**
@@ -312,7 +313,7 @@ public class SmtpTransport extends Transport {
                     mLargestAcceptableMessage = Integer.parseInt(extensions.get("SIZE"));
                 } catch (Exception e) {
                     if (K9MailLib.isDebug() && DEBUG_PROTOCOL_SMTP) {
-                        Log.d(LOG_TAG, "Tried to parse " + extensions.get("SIZE") + " and get an int", e);
+                        log.debug("Tried to parse " + extensions.get("SIZE") + " and get an int", e);
                     }
                 }
             }
@@ -445,13 +446,13 @@ public class SmtpTransport extends Transport {
             }
         } catch (NegativeSmtpReplyException e) {
             if (K9MailLib.isDebug()) {
-                Log.v(LOG_TAG, "Server doesn't support the EHLO command. Trying HELO...");
+                log.trace("Server doesn't support the EHLO command. Trying HELO...");
             }
 
             try {
                 executeSimpleCommand("HELO " + host);
             } catch (NegativeSmtpReplyException e2) {
-                Log.w(LOG_TAG, "Server doesn't support the HELO command. Continuing anyway.");
+                log.warn("Server doesn't support the HELO command. Continuing anyway.");
             }
         }
         return extensions;
@@ -535,7 +536,7 @@ public class SmtpTransport extends Transport {
             // "5xx text" -responses are permanent failures
             String msg = e.getMessage();
             if (msg != null && msg.startsWith("5")) {
-                Log.w(LOG_TAG, "handling 5xx SMTP error code as a permanent failure");
+                log.warn("handling 5xx SMTP error code as a permanent failure");
                 possibleSend = false;
             }
 
@@ -589,7 +590,7 @@ public class SmtpTransport extends Transport {
         }
         String ret = sb.toString();
         if (K9MailLib.isDebug() && DEBUG_PROTOCOL_SMTP)
-            Log.d(LOG_TAG, "SMTP <<< " + ret);
+            log.debug("SMTP <<< " + ret);
 
         return ret;
     }
@@ -602,7 +603,7 @@ public class SmtpTransport extends Transport {
             } else {
                 commandToLog = "SMTP >>> " + s;
             }
-            Log.d(LOG_TAG, commandToLog);
+            log.debug(commandToLog);
         }
 
         byte[] data = s.concat("\r\n").getBytes();

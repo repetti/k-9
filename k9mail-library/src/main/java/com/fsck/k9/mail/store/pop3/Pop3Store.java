@@ -1,9 +1,6 @@
 
 package com.fsck.k9.mail.store.pop3;
 
-import android.annotation.SuppressLint;
-import android.util.Log;
-
 import com.fsck.k9.mail.*;
 import com.fsck.k9.mail.filter.Base64;
 import com.fsck.k9.mail.filter.Hex;
@@ -14,6 +11,8 @@ import com.fsck.k9.mail.ServerSettings.Type;
 import com.fsck.k9.mail.ssl.TrustedSocketFactory;
 import com.fsck.k9.mail.store.RemoteStore;
 import com.fsck.k9.mail.store.StoreConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
 
@@ -35,10 +34,11 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.fsck.k9.mail.K9MailLib.DEBUG_PROTOCOL_POP3;
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 import static com.fsck.k9.mail.CertificateValidationException.Reason.MissingCapability;
 
 public class Pop3Store extends RemoteStore {
+    private static final Logger log = LoggerFactory.getLogger(Pop3Store.class);
+
 
     private static final String STLS_COMMAND = "STLS";
     private static final String USER_COMMAND = "USER";
@@ -279,7 +279,7 @@ public class Pop3Store extends RemoteStore {
         private InputStream mIn;
         private OutputStream mOut;
         private Map<String, Pop3Message> mUidToMsgMap = new HashMap<String, Pop3Message>();
-        @SuppressLint("UseSparseArrays")
+//        @SuppressLint("UseSparseArrays")
         private Map<Integer, Pop3Message> mMsgNumToMsgMap = new HashMap<Integer, Pop3Message>();
         private Map<String, Integer> mUidToMsgNumMap = new HashMap<String, Integer>();
         private String mName;
@@ -641,7 +641,7 @@ public class Pop3Store extends RemoteStore {
                         // response = "+OK msgNum msgUid"
                         String[] uidParts = response.split(" +");
                         if (uidParts.length < 3 || !"+OK".equals(uidParts[0])) {
-                            Log.e(LOG_TAG, "ERR response: " + response);
+                            log.error("ERR response: " + response);
                             return;
                         }
                         String msgUid = uidParts[2];
@@ -700,7 +700,7 @@ public class Pop3Store extends RemoteStore {
             for (String uid : uids) {
                 if (mUidToMsgMap.get(uid) == null) {
                     if (K9MailLib.isDebug() && DEBUG_PROTOCOL_POP3) {
-                        Log.d(LOG_TAG, "Need to index UID " + uid);
+                        log.debug("Need to index UID " + uid);
                     }
                     unindexedUids.add(uid);
                 }
@@ -726,7 +726,7 @@ public class Pop3Store extends RemoteStore {
                     String msgUid = uidParts[1];
                     if (unindexedUids.contains(msgUid)) {
                         if (K9MailLib.isDebug() && DEBUG_PROTOCOL_POP3) {
-                            Log.d(LOG_TAG, "Got msgNum " + msgNum + " for UID " + msgUid);
+                            log.debug("Got msgNum " + msgNum + " for UID " + msgUid);
                         }
 
                         Pop3Message message = mUidToMsgMap.get(msgUid);
@@ -741,7 +741,7 @@ public class Pop3Store extends RemoteStore {
 
         private void indexMessage(int msgNum, Pop3Message message) {
             if (K9MailLib.isDebug() && DEBUG_PROTOCOL_POP3) {
-                Log.d(LOG_TAG, "Adding index for UID " + message.getUid() + " to msgNum " + msgNum);
+                log.debug("Adding index for UID " + message.getUid() + " to msgNum " + msgNum);
             }
             mMsgNumToMsgMap.put(msgNum, message);
             mUidToMsgMap.put(message.getUid(), message);
@@ -905,7 +905,7 @@ public class Pop3Store extends RemoteStore {
             if (lines != -1 && (!mTopNotSupported || mCapabilities.top)) {
                 try {
                     if (K9MailLib.isDebug() && DEBUG_PROTOCOL_POP3 && !mCapabilities.top) {
-                        Log.d(LOG_TAG, "This server doesn't support the CAPA command. " +
+                        log.debug("This server doesn't support the CAPA command. " +
                               "Checking to see if the TOP command is supported nevertheless.");
                     }
 
@@ -920,7 +920,7 @@ public class Pop3Store extends RemoteStore {
                         throw e;
                     } else {
                         if (K9MailLib.isDebug() && DEBUG_PROTOCOL_POP3) {
-                            Log.d(LOG_TAG, "The server really doesn't support the TOP " +
+                            log.debug("The server really doesn't support the TOP " +
                                   "command. Using RETR instead.");
                         }
 
@@ -1028,7 +1028,7 @@ public class Pop3Store extends RemoteStore {
             } while ((d = mIn.read()) != -1);
             String ret = sb.toString();
             if (K9MailLib.isDebug() && DEBUG_PROTOCOL_POP3) {
-                Log.d(LOG_TAG, "<<< " + ret);
+                log.debug("<<< " + ret);
             }
             return ret;
         }
@@ -1122,10 +1122,10 @@ public class Pop3Store extends RemoteStore {
                 if (command != null) {
                     if (K9MailLib.isDebug() && DEBUG_PROTOCOL_POP3) {
                         if (sensitive && !K9MailLib.isDebugSensitive()) {
-                            Log.d(LOG_TAG, ">>> "
+                            log.debug(">>> "
                                   + "[Command Hidden, Enable Sensitive Debug Logging To Show]");
                         } else {
-                            Log.d(LOG_TAG, ">>> " + command);
+                            log.debug(">>> " + command);
                         }
                     }
 
@@ -1197,7 +1197,7 @@ public class Pop3Store extends RemoteStore {
             //   }
 //         catch (MessagingException me)
 //         {
-//          Log.w(LOG_TAG, "Could not delete non-existent message", me);
+//          log.warn("Could not delete non-existent message", me);
 //         }
         }
     }

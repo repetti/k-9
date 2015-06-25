@@ -1,7 +1,6 @@
 
 package com.fsck.k9.mail.internet;
 
-import android.util.Log;
 import com.fsck.k9.mail.Message;
 import com.fsck.k9.mail.MessagingException;
 import java.io.ByteArrayInputStream;
@@ -11,8 +10,9 @@ import java.nio.charset.Charset;
 import org.apache.james.mime4j.codec.Base64InputStream;
 import org.apache.james.mime4j.codec.QuotedPrintableInputStream;
 import org.apache.james.mime4j.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 
 
 /**
@@ -23,6 +23,8 @@ import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
  * it has to be determined with the sender address, the mailer and so on.
  */
 class DecoderUtil {
+    private static final Logger log = LoggerFactory.getLogger(DecoderUtil.class);
+
     /**
      * Decodes an encoded word encoded with the 'B' encoding (described in
      * RFC 2047) found in a header field body.
@@ -169,7 +171,7 @@ class DecoderUtil {
         }
 
         if (encodedText.isEmpty()) {
-            Log.w(LOG_TAG, "Missing encoded text in encoded word: '" + body.substring(begin, end) + "'");
+            log.warn("Missing encoded text in encoded word: '" + body.substring(begin, end) + "'");
             return null;
         }
 
@@ -178,7 +180,7 @@ class DecoderUtil {
         } else if (encoding.equalsIgnoreCase("B")) {
             return DecoderUtil.decodeB(encodedText, charset);
         } else {
-            Log.w(LOG_TAG, "Warning: Unknown encoding in encoded word '" + body.substring(begin, end) + "'");
+            log.warn("Warning: Unknown encoding in encoded word '" + body.substring(begin, end) + "'");
             return null;
         }
     }

@@ -1,12 +1,12 @@
 package com.fsck.k9.mail.internet;
 
-import android.util.Log;
-
 import com.fsck.k9.mail.Message;
 import com.fsck.k9.mail.MessagingException;
 import com.fsck.k9.mail.Part;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,10 +14,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.util.Locale;
 
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 import static com.fsck.k9.mail.internet.JisSupport.SHIFT_JIS;
 
 public class CharsetSupport {
+    private static final Logger log = LoggerFactory.getLogger(CharsetSupport.class);
+
     /**
      * Table for character set fall-back.
      *
@@ -111,7 +112,7 @@ public class CharsetSupport {
             }
 
             if (charset.matches(rule[0])) {
-                Log.e(LOG_TAG, "I don't know how to deal with the charset " + charset +
+                log.error("I don't know how to deal with the charset " + charset +
                         ". Falling back to " + rule[1]);
                 charset = rule[1];
                 try {

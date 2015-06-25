@@ -1,15 +1,17 @@
 package com.fsck.k9.mail;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import android.util.Log;
-
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 
 public abstract class Folder<T extends Message> {
+    private static final Logger log = LoggerFactory.getLogger(Folder.class);
+
     private String status = null;
     private long lastChecked = 0;
     private long lastPush = 0;
@@ -147,7 +149,7 @@ public abstract class Folder<T extends Message> {
         //throw new RuntimeException("fetchPart() not implemented.");
 
         if (K9MailLib.isDebug())
-            Log.d(LOG_TAG, "fetchPart() not implemented.");
+            log.debug("fetchPart() not implemented.");
     }
 
     public abstract void delete(boolean recurse) throws MessagingException;

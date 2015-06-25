@@ -18,12 +18,12 @@ import android.content.Context;
 import android.os.Build;
 import android.security.KeyChain;
 import android.security.KeyChainException;
-import android.util.Log;
 
 import com.fsck.k9.mail.CertificateValidationException;
 import com.fsck.k9.mail.MessagingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 import static com.fsck.k9.mail.CertificateValidationException.Reason;
 import static com.fsck.k9.mail.CertificateValidationException.Reason.RetrievalFailure;
 
@@ -32,6 +32,8 @@ import static com.fsck.k9.mail.CertificateValidationException.Reason.RetrievalFa
  * during the TLS handshake using the Android 4.0 KeyChain API.
  */
 class KeyChainKeyManager extends X509ExtendedKeyManager {
+    private static final Logger log = LoggerFactory.getLogger(KeyChainKeyManager.class);
+
 
     private static PrivateKey sClientCertificateReferenceWorkaround;
 
@@ -204,10 +206,10 @@ class KeyChainKeyManager extends X509ExtendedKeyManager {
                     return mAlias;
                 }
             }
-            Log.w(LOG_TAG, "Client certificate " + mAlias + " not issued by any of the requested issuers");
+            log.warn("Client certificate " + mAlias + " not issued by any of the requested issuers");
             return null;
         }
-        Log.w(LOG_TAG, "Client certificate " + mAlias + " does not match any of the requested key types");
+        log.warn("Client certificate " + mAlias + " does not match any of the requested key types");
         return null;
     }
 }

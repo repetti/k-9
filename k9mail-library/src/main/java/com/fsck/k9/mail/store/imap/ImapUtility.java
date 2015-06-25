@@ -17,17 +17,19 @@
 
 package com.fsck.k9.mail.store.imap;
 
-import android.util.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 
 /**
  * Utility methods for use with IMAP.
  */
 class ImapUtility {
+    private static final Logger log = LoggerFactory.getLogger(ImapUtility.class);
+
     /**
      * Gets all of the values in a sequence set per RFC 3501.
      *
@@ -101,12 +103,12 @@ class ImapUtility {
                             }
                         }
                     } else {
-                        Log.d(LOG_TAG, "Invalid range: " + range);
+                        log.debug("Invalid range: " + range);
                     }
                 }
             }
         } catch (NumberFormatException e) {
-            Log.d(LOG_TAG, "Invalid range value: " + range, e);
+            log.debug("Invalid range value: " + range, e);
         }
 
         return list;
@@ -122,7 +124,7 @@ class ImapUtility {
             // do nothing
         }
 
-        Log.d(LOG_TAG, "Invalid UID value: " + number);
+        log.debug("Invalid UID value: " + number);
 
         return false;
     }

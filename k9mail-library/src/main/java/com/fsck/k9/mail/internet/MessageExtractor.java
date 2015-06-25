@@ -1,13 +1,13 @@
 package com.fsck.k9.mail.internet;
 
-import android.util.Log;
-
 import com.fsck.k9.mail.Body;
 import com.fsck.k9.mail.BodyPart;
 import com.fsck.k9.mail.Message;
 import com.fsck.k9.mail.MessagingException;
 import com.fsck.k9.mail.Multipart;
 import com.fsck.k9.mail.Part;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.fsck.k9.mail.K9MailLib.LOG_TAG;
 import static com.fsck.k9.mail.internet.CharsetSupport.fixupCharset;
 import static com.fsck.k9.mail.internet.MimeUtility.getHeaderParameter;
 import static com.fsck.k9.mail.internet.Viewable.Alternative;
@@ -28,6 +27,8 @@ import static com.fsck.k9.mail.internet.Viewable.Text;
 import static com.fsck.k9.mail.internet.Viewable.Textual;
 
 public class MessageExtractor {
+    private static final Logger log = LoggerFactory.getLogger(MessageExtractor.class);
+
     private MessageExtractor() {}
 
     public static String getTextFromPart(Part part) {
@@ -90,13 +91,13 @@ public class MessageExtractor {
              * If we are not able to process the body there's nothing we can do about it. Return
              * null and let the upper layers handle the missing content.
              */
-            Log.e(LOG_TAG, "Unable to getTextFromPart " + oom.toString());
+            log.error("Unable to getTextFromPart " + oom.toString());
         } catch (Exception e) {
             /*
              * If we are not able to process the body there's nothing we can do about it. Return
              * null and let the upper layers handle the missing content.
              */
-            Log.e(LOG_TAG, "Unable to getTextFromPart", e);
+            log.error("Unable to getTextFromPart", e);
         }
         return null;
     }
