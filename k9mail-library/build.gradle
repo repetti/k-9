@@ -10,6 +10,8 @@ repositories {
 }
 
 dependencies {
+    compile fileTree(dir: '../lib', include: '*.jar')
+
     compile 'org.apache.james:apache-mime4j-core:0.7.2'
     compile 'org.apache.james:apache-mime4j-dom:0.7.2'
     compile 'commons-io:commons-io:2.4'
@@ -17,7 +19,10 @@ dependencies {
     compile 'com.beetstra.jutf7:jutf7:1.0.0'
 
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.+'
+    runtime group: 'org.slf4j', name: 'slf4j-simple', version: '1.+'
+
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.0.+'
+    compile group: 'com.google.android', name: 'android', version: '4.1.+'
 
 //    androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
 //    androidTestCompile 'com.madgag.spongycastle:pg:1.51.0.0'

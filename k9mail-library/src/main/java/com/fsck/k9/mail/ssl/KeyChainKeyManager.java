@@ -102,7 +102,7 @@ class KeyChainKeyManager extends X509ExtendedKeyManager {
          * will crash on Android < 4.2 with "Fatal signal 11 code=1". See
          * https://code.google.com/p/android/issues/detail?id=62319
          */
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) { //JELLY_BEAN_MR1
             savePrivateKeyReference(privateKey);
         }
 
